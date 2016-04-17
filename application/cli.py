@@ -3,15 +3,19 @@ import re  # regexp for validation
 
 from application.aws.Connections import Connection  # AWS global connections
 from application.aws.EC2 import EC2Instance  # AWS EC2
+from application.aws.Volumes import Volumes  # AWS EC2 Volumes
 
 # AWS Global connection
 aws_conn = Connection()
 
-# EC2 connection
+# AWS EC2 connection
 ec2conn = aws_conn.ec2Connection()
 
-# EC2 Instance obj
+# AWS EC2 Instance obj
 ec2i = EC2Instance()
+
+# AWS Volumes obj
+vols = Volumes()
 
 
 def welcome_menu():
@@ -93,20 +97,21 @@ def _menu_aws_compute():
     print "AWS Compute menu"
     print "\t1. List all running instances"
     print "\t2. Show instance info"
-    print "\t3. Start a new instance (Red Hat Enterprise Linux 7.2)"
+    print "\t3. Start an stopped instance"
     print "\t4. Stop all instances"
     print "\t5. Stop a specific instance"
     print "\t6. Terminate all instances"
     print "\t7. Terminate a specific instance"
-    print "\t8. Attach an existing volume to an instance"
-    print "\t9. Detach a volume from an instance"
-    print "\t10. Launch a new instance (not previously addressed)"
+    print "\t8. List all volumes"
+    print "\t9. Attach an existing volume to an instance"
+    print "\t10. Detach a volume from an instance"
+    print "\t11. Start a new instance (not previously addressed)"
     print "Enter \'\\q\' to go back"
 
     while True:
         op = raw_input("Enter option: ")
         # Validating entered option
-        op = __op_validation(r'^([1-9]|10|\\q)$', op)
+        op = __op_validation(r'^([1-9]|1[01]|\\q)$', op)
         if op == "\\q":
             _process_options("Compute")
             break
@@ -120,10 +125,10 @@ def _menu_aws_compute():
                 # Show info of instance
                 ec2i.show_instance_info(ec2conn, i_id)
             elif op == '3':
-                # Ask user to enter instance name
-                i_name = raw_input("Enter instance name: ")
-                # Create new instance of Red Hat Enterprise Linux 7.2
-                ec2i.start_instance(ec2conn, ami_id="ami-8b8c57f8", key_name="cit-ec2-key", instance_name=i_name)
+                # Ask user to enter instance id
+                i_id = raw_input("Enter instance id: ")
+                # Star the selected instance
+                ec2i.start_instance(ec2conn, i_id)
             elif op == '4':
                 # Stop all running instances
                 ec2i.stop_all_instances(ec2conn)
@@ -140,7 +145,44 @@ def _menu_aws_compute():
                 i_id = raw_input("Enter instance id: ")
                 # Terminate instance
                 ec2i.terminate_instance(ec2conn, i_id)
+            elif op == '8':
+                # List all volumes
+                vols.list_volumes(ec2conn)
+            elif op == '9':
+                # Ask user for instance id
+                i_id = raw_input("Enter instance id: ")
+                # Ask user for volume id
+                vol_id = raw_input("Enter volume id: ")
+                # Attach volume to instance.
+                vols.attach_volume(ec2conn, vol_id, i_id)
+            elif op == '10':
+                # Ask user for volume id
+                vol_id = raw_input("Enter volume id: ")
+                # Detach volume from instance.
+                vols.detach_volume(ec2conn, vol_id)
+            elif op == '11':
+                _menu_aws_compute_new_instance()
 
+
+def _menu_aws_compute_new_instance():
+    # AMIs dict
+    amis = {'1': 'ami-31328842', '2': 'ami-8b8c57f8', '3': 'ami-f95ef58a', '4': 'ami-c6972fb5'}
+    # Ask user to enter instance name
+    i_name = raw_input("Enter instance name: ")
+    # Ask user to choose OS
+    print "Creating new instance.. Choose OS:"
+    print "\t1. Amazon Linux"
+    print "\t2. Red Hat Enterprise Linux 7.2"
+    print "\t3. Ubuntu Server 14.04 LTS"
+    print "\t4. Microsoft Windows Server 2012 R2 Base"
+    op = raw_input("Enter option: ")
+    # Validating entered option
+    op = __op_validation(r'^[1-4]|(\\q)$', op)
+    if op == "\\q":
+        _menu_aws_compute()
+    else:
+        # Create new fresh instance
+        ec2i.start_new_instance(ec2conn, amis[op], i_name)
 
 
 def _menu_openstack_compute():

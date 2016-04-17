@@ -26,7 +26,7 @@ class EC2Instance:
                 # print instance information
                 print '\tInstance Name:', instancename, ' Instance Id:', i.id, ' Instance type:', i.instance_type,\
                     ' State:', i.state, 'IP Address:', i.ip_address, 'Launch time:', i.launch_time,\
-                    ' AMI id:', i.image_id, i.region
+                    ' AMI id:', i.image_id, ' Region:', i._placement
 
     def show_instance_info(self, conn, instance_id):
         # Get instance that matches with id provided
@@ -47,12 +47,23 @@ class EC2Instance:
         except Exception as e:
             print "Instance id", instance_id, "doesn't exist."
 
-    def start_instance(self, conn, ami_id, key_name, instance_name):
-        """ Starts a stopped instance """
-        reservation = conn.run_instances(ami_id, key_name=key_name, instance_type="t2.micro")
+    def start_new_instance(self, conn, ami_id, instance_name):
+        """ Starts a new instance """
+        reservation = conn.run_instances(ami_id, key_name="cit-ec2-key", instance_type="t2.micro")
         instance = reservation.instances[0]
         conn.create_tags([instance.id], {"Name": instance_name})
         print "New instance id", instance.id, "called", instance_name, "was started."
+
+    def start_instance(self, conn, instance_id):
+        """ Starts a stopped instance """
+        # Get instance that matches with id provided
+        try:
+            reservations = conn.get_all_instances(instance_ids=[instance_id])
+            instance = reservations[0].instances[0]
+            instance.start()
+            print "Instance id", instance.id, "was started."
+        except Exception as e:
+            print "Instance id", instance_id, "doesn't exist."
 
     def stop_instance(self, conn, instance_id):
         """ Stops a running instance"""
