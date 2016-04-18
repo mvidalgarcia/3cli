@@ -5,3 +5,4 @@
 *.pyc
 */data
 tests/*
+trystack_api_key.txt

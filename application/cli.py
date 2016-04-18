@@ -1,29 +1,38 @@
 import os  # for clearing console
 import re  # regexp for validation
 
-from application.aws.Connections import Connection  # AWS global connections
+from application.aws.Connections import AWSConnection  # AWS global connections
 from application.aws.EC2 import EC2Instance  # AWS EC2
 from application.aws.Volumes import Volumes  # AWS EC2 Volumes
 from application.aws.S3 import S3Instance    # AWS S3
-from boto.s3.connection import S3Connection
+from boto.s3.connection import S3Connection  # AWS connection
+
+from application.openstack.Connections import OpenStackConnection # OpenStack global connection
+from application.openstack.Compute import ComputeInstance  # OpenStack Compute
+
+# *** AWS - boto ***
 
 # AWS Global connection
-aws_conn = Connection()
-
+aws_conn = AWSConnection()
 # AWS EC2 connection
 ec2conn = aws_conn.ec2Connection()
-
 # AWS EC2 Instance obj
 ec2i = EC2Instance()
-
 # AWS Volumes obj
 vols = Volumes()
-
 # S3 connection
 s3conn = S3Connection()
-
 # S3 object
 s3i = S3Instance()
+
+# *** OpenStack - LibCloud ***
+
+# OpenStack global connection
+os_conn = OpenStackConnection()
+# OpenStack driver
+os_driver = os_conn.openstack_driver()
+# OpenStack Compute obj
+os_compi = ComputeInstance(os_driver)
 
 
 def welcome_menu():
@@ -203,13 +212,16 @@ def _menu_openstack_compute():
     print "\t1. List all running instances"
     print "Enter \'\\q\' to go back"
 
-    op = raw_input("Enter option: ")
-    # Validating entered option
-    op = __op_validation(r'^(1|\\q)$', op)
-    if op == "\\q":
-        _process_options("Compute")
-    else:
-        print 'process options'
+    while True:
+        op = raw_input("Enter option: ")
+        # Validating entered option
+        op = __op_validation(r'^(1|\\q)$', op)
+        if op == "\\q":
+            _process_options("Compute")
+        else:
+            if op == '1':
+                # List OpenStack instances
+                os_compi.list_instances()
 
 
 def _menu_aws_openstack_storage(vendor):

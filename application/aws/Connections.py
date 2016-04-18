@@ -3,7 +3,7 @@ import boto.ec2
 import boto.ec2.cloudwatch
 
 
-class Connection:
+class AWSConnection:
     def __init__(self):
         """ Connection Instance """
         self.region = 'eu-west-1'
