@@ -2,7 +2,10 @@
 Cloud Computing Command Line Interface for AWS and CloudStack written in Python.
 
 ## Requirements
-You should have your [boto](http://boto.cloudhackers.com/en/latest/) credentials set in advance. More info [here](http://boto.cloudhackers.com/en/latest/boto_config_tut.html#credentials).
+
+You must have your [boto](http://boto.cloudhackers.com/en/latest/) credentials set in advance. More info [here](http://boto.cloudhackers.com/en/latest/boto_config_tut.html#credentials).  
+
+You must have a file called `trystack_api_key.txt` with the OpenStack API key in the project root folder.
 
 ##  Install
 
