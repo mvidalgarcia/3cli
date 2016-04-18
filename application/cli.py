@@ -4,6 +4,8 @@ import re  # regexp for validation
 from application.aws.Connections import Connection  # AWS global connections
 from application.aws.EC2 import EC2Instance  # AWS EC2
 from application.aws.Volumes import Volumes  # AWS EC2 Volumes
+from application.aws.S3 import S3Instance    # AWS S3
+from boto.s3.connection import S3Connection
 
 # AWS Global connection
 aws_conn = Connection()
@@ -17,13 +19,19 @@ ec2i = EC2Instance()
 # AWS Volumes obj
 vols = Volumes()
 
+# S3 connection
+s3conn = S3Connection()
+
+# S3 object
+s3i = S3Instance()
+
 
 def welcome_menu():
     """
     Shows main menu
     :return: option chosen
     """
-    options = {'1': 'Compute', '2': 'Storage', '3': 'Monitoring', '4': 'changeme1', '5': 'changeme2'}
+    options = {'1': 'Compute', '2': 'Storage', '3': 'Monitoring', '4': 'changeme1', '5': 'changeme2', '6': 'exit'}
     __cls()
     print "*** Welcome to 3cli ***"
     print "Choose an option:"
@@ -32,9 +40,10 @@ def welcome_menu():
     print "\t3. Monitoring"
     print "\t4. Autoscaling/AmazonDB/Relational DB Service/Elastic Load Balancing"
     print "\t5. Another service (API reference only)"
+    print "\t6. Exit"
     op = raw_input("Enter option: ")
     # Validating entered option
-    op = __op_validation('^[1-5]$', op)
+    op = __op_validation('^[1-6]$', op)
     _process_options(options[op])
 
 
@@ -55,12 +64,15 @@ def _process_options(op):
         op_category = op
         op_vendor = raw_input("Enter option: ")
         # Validating entered option
-        op_vendor = __op_validation(r'^[12]|(\\q)$', op_vendor)
+        op_vendor = __op_validation(r'^([12]|\\q)$', op_vendor)
         if op_vendor == "\\q":
             welcome_menu()
         else:
             # Show submenu of category Compute/Storage of AWS/OpenStack vendor
             _process_compute_storage(vendors[op_vendor], op_category)
+    elif op == 'exit':
+        # Exit program
+        exit()
 
 
 def _process_compute_storage(vendor, category):
@@ -177,7 +189,7 @@ def _menu_aws_compute_new_instance():
     print "\t4. Microsoft Windows Server 2012 R2 Base"
     op = raw_input("Enter option: ")
     # Validating entered option
-    op = __op_validation(r'^[1-4]|(\\q)$', op)
+    op = __op_validation(r'^([1-4]|\\q)$', op)
     if op == "\\q":
         _menu_aws_compute()
     else:
@@ -193,7 +205,7 @@ def _menu_openstack_compute():
 
     op = raw_input("Enter option: ")
     # Validating entered option
-    op = __op_validation(r'^[1]|(\\q)$', op)
+    op = __op_validation(r'^(1|\\q)$', op)
     if op == "\\q":
         _process_options("Compute")
     else:
@@ -210,17 +222,61 @@ def _menu_aws_openstack_storage(vendor):
     print "\t1. List all buckets"
     print "\t2. List all objects in a bucket"
     print "\t3. Upload an object"
-    print "\t4. Download an object"
-    print "\t5. Delete an object"
+    print "\t4. Download an object from bucket"
+    print "\t5. Delete an object from bucket"
     print "Enter \'\\q\' to go back"
 
-    op = raw_input("Enter option: ")
-    # Validating entered option
-    op = __op_validation(r'^[1-5]|(\\q)$', op)
-    if op == "\\q":
-        _process_options("Storage")
-    else:
-        print 'process options'
+    while True:
+        op = raw_input("Enter option: ")
+        # Validating entered option
+        op = __op_validation(r'^([1-5]|\\q)$', op)
+        if op == "\\q":
+            _process_options("Storage")
+            break
+        else:
+            if vendor == 'AWS':
+                _process_aws_storage(op)
+            elif vendor == 'OpenStack':
+                _process_openstack_storage(op)
+
+
+def _process_aws_storage(op):
+    """
+    Process AWS storage functions
+    :param op: Storage option selected by user
+    """
+    if op == '1':
+        s3i.list_buckets(s3conn)
+    if op == '2':
+        # Ask user for bucket name
+        bucket_name = raw_input("Enter bucket name: ")
+        # List its files
+        s3i.list_bucket_files(s3conn, bucket_name)
+    if op == '3':
+        # Ask user for bucket name
+        bucket_name = raw_input("Enter bucket name: ")
+        # Ask user for file name
+        file_name = raw_input("Enter file name (path): ")
+        # Upload file to bucket
+        s3i.upload_file_to_bucket(s3conn, bucket_name, file_name)
+    if op == '4':
+        # Ask user for bucket name
+        bucket_name = raw_input("Enter bucket name: ")
+        # Ask user for file name
+        file_name = raw_input("Enter object name: ")
+        # Download file from bucket
+        s3i.download_file_from_bucket(s3conn, bucket_name, file_name)
+    if op == '5':
+        # Ask user for bucket name
+        bucket_name = raw_input("Enter bucket name: ")
+        # Ask user for file name
+        file_name = raw_input("Enter object name: ")
+        # Delete file from bucket
+        s3i.delete_file_from_bucket(s3conn, bucket_name, file_name)
+
+
+def _process_openstack_storage(op):
+    print 'je'
 
 
 # Utils
