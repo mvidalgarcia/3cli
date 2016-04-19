@@ -7,13 +7,24 @@ class S3Instance:
         """ S3Instance Constructor """
 
     def list_buckets(self, conn):
+        """
+        List S3 buckets
+        :param conn: S3 connection
+        """
         buckets = conn.get_all_buckets()
         print "Current AWS S3 buckets:"
+        # Loop through buckets and print information
         for b in buckets:
             print "\tName:", b.name, "Creation date:", b.creation_date
             # print b.__dict__
 
     def create_bucket(self, conn, bucket_name):
+        """
+        Create new S3 bucket
+        :param conn: S3 connection
+        :param bucket_name: New bucket name
+        :return: bucket instance
+        """
         try:
             bucket = conn.create_bucket(bucket_name)
         except boto.exception.S3CreateError as e:
@@ -23,6 +34,12 @@ class S3Instance:
         return bucket
 
     def upload_file_to_bucket(self, conn, bucket_name, filename):
+        """
+        Upload local file to S3 bucket
+        :param conn: S3 conenction
+        :param bucket_name: Bucket name to upload file to
+        :param filename: File path to upload
+        """
         try:
             b = conn.get_bucket(bucket_name)
             k = Key(b)
@@ -40,9 +57,16 @@ class S3Instance:
             print e
 
     def list_bucket_files(self, conn, bucket_name):
+        """
+        List all files from a specific bucket
+        :param conn: S3 conenction
+        :param bucket_name: Bucket which upload file to
+        """
         try:
+            # Get bucket handler
             bucket = conn.get_bucket(bucket_name)
             print bucket_name, "files:"
+            # Loop through bucket files an print name
             for key in bucket.list():
                 print '\t', key.name.encode('utf-8')
         except boto.exception.S3ResponseError as e:

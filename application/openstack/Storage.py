@@ -41,6 +41,7 @@ class StorageInstance:
         :param filepath: Local filepath of the file to upload
         """
         try:
+            # Get specific container by name
             container = self.driver.get_container(container_name=container_name)
         except libcloud.storage.types.ContainerDoesNotExistError:
             print 'Container', container_name, 'does not exist.'
@@ -48,6 +49,7 @@ class StorageInstance:
         # Delete the path to get name in container equals name in OS
         filename = filepath.split('/')[-1]
         try:
+            # Upload file to container
             self.driver.upload_object(file_path=filepath, container=container, object_name=filename)
         except OSError:
             print 'File', filepath, 'does not exist'
@@ -62,6 +64,7 @@ class StorageInstance:
         :param filename: Name of the file to download
         """
         try:
+            # Get file/object handler
             obj = self.driver.get_object(container_name=container_name, object_name=filename)
         except libcloud.storage.types.ContainerDoesNotExistError:
             print 'Container', container_name, 'does not exist.'
@@ -69,6 +72,7 @@ class StorageInstance:
         except libcloud.storage.types.ObjectDoesNotExistError:
             print 'File', filename, 'does not exist in container', container_name
             return
+        # Download object, in project root folder (./), rewriting if there's a file with same name
         self.driver.download_object(obj, './'+filename, overwrite_existing=True)
         print "File", filename, "downloaded to project root folder"
         print
@@ -80,6 +84,7 @@ class StorageInstance:
         :param filename: Name of the file to delete
         """
         try:
+            # Get file/object handler
             obj = self.driver.get_object(container_name=container_name, object_name=filename)
         except libcloud.storage.types.ContainerDoesNotExistError:
             print 'Container', container_name, 'does not exist.'
@@ -87,14 +92,20 @@ class StorageInstance:
         except libcloud.storage.types.ObjectDoesNotExistError:
             print 'File', filename, 'does not exist in container', container_name
             return
+        # Delete file from container
         self.driver.delete_object(obj)
         print "File", filename, "deleted from container", container_name
         print
 
     def create_container(self, container_name):
-        bucket = self.driver.create_container(container_name)
+        """
+        Create a new container
+        :param container_name: New container name
+        :return: Container handler
+        """
+        container = self.driver.create_container(container_name)
         print "New container", container_name, "was created."
         print
-        return bucket
+        return container
 
 

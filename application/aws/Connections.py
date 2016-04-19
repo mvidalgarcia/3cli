@@ -7,7 +7,7 @@ import boto.rds
 class AWSConnection:
     def __init__(self):
         """ Connection Instance """
-        self.region = 'eu-west-1'
+        self.region = 'eu-west-1'  # Region used, change it if appropriate
 
     def ec2Connection(self):
         """ Create and return an EC2 Connection """
@@ -19,5 +19,5 @@ class AWSConnection:
         return boto.ec2.cloudwatch.connect_to_region(self.region)
 
     def rdsConnection(self):
-        """ Create and return a Relational Database Service Connection """
+        """ Create and return a Relational Database Service (AWS RDS) Connection """
         return boto.rds.connect_to_region(self.region)

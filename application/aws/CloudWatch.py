@@ -1,6 +1,6 @@
 import boto
 from boto.sns import connect_to_region  # for SNS notifications
-import datetime
+import datetime  # for retrieving periodical metrics
 
 
 class CloudWatch:
@@ -8,39 +8,57 @@ class CloudWatch:
         """ CloudWatch Constructor """
 
     def enable_cw(self, cw_conn):
-        """Enable CloudWatch monitoring on all running instances. This could be changed so you enable monitoring on
-        a specific Instance ID"""
+        """
+        Enable CloudWatch monitoring on all running instances. This could be changed so you enable monitoring on
+        a specific Instance ID
+        :param cw_conn: AWS CloudWatch connection
+        :return:
+        """
+        # Create list of instance IDs
+        list_inst_ids = []
+        # Get information on currently running instances
+        reservations = cw_conn.get_all_instances()
+        # Create list of instances
+        instances = [i for r in reservations for i in r.instances]
+        # For loop checks for instance in list of instances
+        for instance in instances:
+            # If instance state is equals to running
+            if instance.state == u'running':
+                # Append instance ID to the list of instance IDs
+                list_inst_ids.append(instance.id)
 
-        list_inst_ids = []  # Create list of instance IDs
-        reservations = cw_conn.get_all_instances()  # Get information on currently running instances
-        instances = [i for r in reservations for i in r.instances]  # Create list of instances
-        for instance in instances:  # For loop checks for instance in list of instances
-            if instance.state == u'running':  # If instance state is equals to runnin
-                list_inst_ids.append(instance.id)  # Append instance ID to the list of instance IDs
-
+        # If there are running instances, start monitoring them
         if list_inst_ids:
-            inst_mon = cw_conn.monitor_instances(list_inst_ids)
+            cw_conn.monitor_instances(list_inst_ids)
             print "Enabling CloudWatch in all running instances."
         else:
             print "No instances to monitor"
 
     def query_cw(self, instance_id, cw_conn):
-        """ Query CloudWatch for data about your instance"""
+        """
+        Query CloudWatch for data about your instance
+        :param instance_id: Instance which we want to get metrics from
+        :param cw_conn: AWS CloudWatch Connection
+        :return:
+        """
+        # Get all available metrics
         metrics = cw_conn.list_metrics()
-        # print metrics
         my_metrics = []
         for metric in metrics:
             if 'InstanceId' in metric.dimensions:
+                # Filter by instance id provided
                 if instance_id in metric.dimensions['InstanceId']:
                     my_metrics.append(metric)
+                    # Select interval
                     end = datetime.datetime.utcnow()
                     start = end - datetime.timedelta(hours=1)
+                    # Custom type of metric
                     datapoints = metric.query(start, end, 'Average', 'Percent')
                     if len(datapoints) > 0:
                         print metric
+                        # Print metrics datapoints
                         for datapoint in datapoints:
                             print '\t', datapoint
-        # print my_metrics
 
     def cw_alarm(self, cw_conn, instance_id, email_address):
         """

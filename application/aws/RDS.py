@@ -1,4 +1,4 @@
-import boto
+import boto  # handling exceptions
 
 
 class RDSInstance:

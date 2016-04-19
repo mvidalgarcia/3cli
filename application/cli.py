@@ -9,7 +9,7 @@ from boto.s3.connection import S3Connection  # AWS connection
 from application.aws.CloudWatch import CloudWatch  # AWS CloudWatch
 from application.aws.RDS import RDSInstance  # AWS RDS
 
-from application.openstack.Connections import OpenStackConnection # OpenStack global connection
+from application.openstack.Connections import OpenStackConnection  # OpenStack global connection
 from application.openstack.Compute import ComputeInstance  # OpenStack Compute
 from application.openstack.Storage import StorageInstance  # OpenStack Storage
 
@@ -53,10 +53,10 @@ os_stori = StorageInstance(os_storage_driver)
 
 def welcome_menu():
     """
-    Shows main menu
-    :return: option chosen
+    Shows main menu and call process option method
     """
     options = {'1': 'Compute', '2': 'Storage', '3': 'Monitoring', '4': 'RDS', '5': 'changeme2', '6': 'exit'}
+    # Clear screen
     __cls()
     print "*** Welcome to 3cli ***"
     print "Choose an option:"
@@ -76,8 +76,8 @@ def _process_options(op):
     """
     Shows submenu based on main menu chosen option
     :param op: option chosen ny user in main menu
-    :return:
     """
+    # Clear screen
     __cls()
     if op == 'Compute' or op == 'Storage':
         vendors = {'1': 'AWS', '2': 'OpenStack'}
@@ -111,7 +111,6 @@ def _process_compute_storage(vendor, category):
     Shows submenu for Compute and Storage category
     :param vendor: selected vendor name (AWS, OpenStack)
     :param category: selected category name (Compute, Storage)
-    :return:
     """
     if vendor == 'AWS':
         _menu_aws(category)
@@ -120,6 +119,11 @@ def _process_compute_storage(vendor, category):
 
 
 def _menu_aws(category):
+    """
+    Call to functions that show different AWS menus depending on category
+    :param category: Compute or Storage 
+    """
+    # Clear screen
     __cls()
     if category == "Compute":
         _menu_aws_compute()
@@ -128,6 +132,11 @@ def _menu_aws(category):
 
 
 def _menu_openstack(category):
+    """
+    Call to functions that show different OpenStack menus depending on category
+    :param category: Compute or Storage
+    """
+    # Clear screen
     __cls()
     if category == "Compute":
         _menu_openstack_compute()
@@ -136,7 +145,11 @@ def _menu_openstack(category):
 
 
 def _menu_aws_compute():
-    __cls()
+    """
+    Show AWS Compute menu and call different functions depending on user's input
+    """
+    # Clear screen
+    __cls() 
     print "AWS Compute menu"
     print "\t1. List all running instances"
     print "\t2. Show instance info"
@@ -208,6 +221,9 @@ def _menu_aws_compute():
 
 
 def _menu_aws_compute_new_instance():
+    """
+    Show AWS Compute New Instance menu
+    """
     # AMIs dict
     amis = {'1': 'ami-31328842', '2': 'ami-8b8c57f8', '3': 'ami-f95ef58a', '4': 'ami-c6972fb5'}
     # Ask user to enter instance name
@@ -229,6 +245,7 @@ def _menu_aws_compute_new_instance():
 
 
 def _menu_openstack_compute():
+    # Clear screen
     __cls()
     print "OpenStack Compute menu"
     print "\t1. List all running instances"
@@ -249,8 +266,8 @@ def _menu_openstack_compute():
 def _menu_aws_openstack_storage(vendor):
     """
     Common menu for both AWS and OpenStack storage
-    :return:
     """
+    # Clear screen
     __cls()
     print vendor, "Storage menu"
     print "\t1. List all buckets"
@@ -259,14 +276,16 @@ def _menu_aws_openstack_storage(vendor):
     print "\t4. Download an object from bucket"
     print "\t5. Delete an object from bucket"
     print "Enter \'\\q\' to go back"
-
+    # Infinite loop to select option, only stop when user enters '\q'
     while True:
+        # Ask user for number option
         op = raw_input("Enter option: ")
         # Validating entered option
         op = __op_validation(r'^([1-5]|\\q)$', op)
         if op == "\\q":
+            # Go to the previous menu
             _process_options("Storage")
-            break
+            break  # stop infinite loop
         else:
             if vendor == 'AWS':
                 _process_aws_storage(op)
@@ -347,7 +366,7 @@ def _process_openstack_storage(op):
 
 def _process_monitoring():
     """
-    Process monitoring menu
+    Process monitoring (AWS) menu
     """
     print "Monitoring menu:"
     print "\t1. Display AWS EC2 instance metrics"
@@ -358,8 +377,9 @@ def _process_monitoring():
         # Validating entered option
         op_vendor = __op_validation(r'^([12]|\\q)$', op)
         if op_vendor == "\\q":
+            # Go to initial menu
             welcome_menu()
-            break
+            break  # break inf loop
         else:
             if op == '1':
                 # List instances to select ID
@@ -378,9 +398,10 @@ def _process_monitoring():
                 email_address = raw_input("Enter email address of notification alarm: ")
                 cwi.cw_alarm(cwconn, instance_id, email_address)
 
+
 def _process_rds():
     """
-    Process Relational Database Service menu
+    Process Relational Database Service (Amazon RDS) menu
     """
     print "Relational Database Service menu:"
     print "\t1. List DB instances"
@@ -422,14 +443,13 @@ def _process_rds():
                 rdsi.delete_dbinstance(rdsconn, dbinstance_name)
 
 
-
 # Utils
 
 def __op_validation(regex, op):
     """
-    Input option validation
-    :param regex: Regular expresion to match
-    :return: valid option
+    Input option validation. Ask user repeatedly until the option is valid.
+    :param regex: Regular expression to match
+    :return: Valid option
     """
     while not re.match(regex, op):
         op = raw_input("Invalid option, try again: ")
