@@ -6,10 +6,12 @@ from application.aws.EC2 import EC2Instance  # AWS EC2
 from application.aws.Volumes import Volumes  # AWS EC2 Volumes
 from application.aws.S3 import S3Instance    # AWS S3
 from boto.s3.connection import S3Connection  # AWS connection
+from application.aws.CloudWatch import CloudWatch  # AWS CloudWatch
 
 from application.openstack.Connections import OpenStackConnection # OpenStack global connection
 from application.openstack.Compute import ComputeInstance  # OpenStack Compute
 from application.openstack.Storage import StorageInstance  # OpenStack Storage
+
 
 # *** AWS - boto ***
 
@@ -21,10 +23,14 @@ ec2conn = aws_conn.ec2Connection()
 ec2i = EC2Instance()
 # AWS Volumes obj
 vols = Volumes()
-# S3 connection
+# AWS S3 connection
 s3conn = S3Connection()
-# S3 object
+# AWS S3 object
 s3i = S3Instance()
+# AWS CloudWatch connection
+cwconn = aws_conn.cwConnection()
+# AWS CloudWatch obj
+cwi = CloudWatch()
 
 # *** OpenStack - LibCloud ***
 
@@ -84,6 +90,9 @@ def _process_options(op):
         else:
             # Show submenu of category Compute/Storage of AWS/OpenStack vendor
             _process_compute_storage(vendors[op_vendor], op_category)
+    if op == 'Monitoring':
+        _process_monitoring()
+
     elif op == 'exit':
         # Exit program
         exit()
@@ -326,6 +335,37 @@ def _process_openstack_storage(op):
         file_name = raw_input("Enter object name: ")
         # Delete file from container
         os_stori.delele_file_from_container(container_name, file_name)
+
+
+def _process_monitoring():
+    print "Monitoring menu:"
+    print "\t1. Display AWS EC2 instance metrics"
+    print "\t2. Set alarm (<40% CPU utilisation)"
+    print "Enter \'\\q\' to go back"
+    while True:
+        op = raw_input("Enter option: ")
+        # Validating entered option
+        op_vendor = __op_validation(r'^([12]|\\q)$', op)
+        if op_vendor == "\\q":
+            welcome_menu()
+            break
+        else:
+            if op == '1':
+                # List instances to select ID
+                ec2i.list_instances(ec2conn)
+                # Ask user for instance id
+                instance_id = raw_input("Enter instance id: ")
+                # Enable CloudWatch
+                cwi.enable_cw(ec2conn)
+                # Query CloudWatch metrics
+                cwi.query_cw(instance_id, cwconn)
+            elif op == '2':
+                ec2i.list_instances(ec2conn)
+                # Ask user for instance id
+                instance_id = raw_input("Enter instance id: ")
+                # Ask user for email address to notifify
+                email_address = raw_input("Enter email address of notification alarm: ")
+                cwi.cw_alarm(cwconn, instance_id, email_address)
 
 
 # Utils
