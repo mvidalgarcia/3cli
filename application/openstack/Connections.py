@@ -6,15 +6,18 @@ import libcloud.security
 
 # It's very important that you place your API key in a file called 'trystack_api_key.txt' in the project root
 # Read api_key from file.
+os_config_file = dict()
 try:
-    with open('trystack_api_key.txt') as f:
-        key = f.readline()
+    with open('trystack_api_key.cfg') as f:
+        lines = f.readlines()
+    for line in lines:
+        os_config_file[line.split('=')[0]] = line.split('=')[1].strip()
 except IOError as e:
     print 'Place a file called "trystack_api_key.txt" with the API Key in project root.'
     exit()
 
-USER = 'marco.vidal-garcia'
-API_KEY = key
+USER = os_config_file['USER']
+API_KEY = os_config_file['API_KEY']
 AUTH_URL = 'http://128.136.179.2:5000'
 
 
