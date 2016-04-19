@@ -1,6 +1,7 @@
 import boto
 import boto.ec2
 import boto.ec2.cloudwatch
+import boto.rds
 
 
 class AWSConnection:
@@ -16,3 +17,7 @@ class AWSConnection:
     def cwConnection(self):
         """ Create and return an EC2 CloudWatch Connection """
         return boto.ec2.cloudwatch.connect_to_region(self.region)
+
+    def rdsConnection(self):
+        """ Create and return a Relational Database Service Connection """
+        return boto.rds.connect_to_region(self.region)

@@ -7,6 +7,7 @@ from application.aws.Volumes import Volumes  # AWS EC2 Volumes
 from application.aws.S3 import S3Instance    # AWS S3
 from boto.s3.connection import S3Connection  # AWS connection
 from application.aws.CloudWatch import CloudWatch  # AWS CloudWatch
+from application.aws.RDS import RDSInstance  # AWS RDS
 
 from application.openstack.Connections import OpenStackConnection # OpenStack global connection
 from application.openstack.Compute import ComputeInstance  # OpenStack Compute
@@ -31,6 +32,10 @@ s3i = S3Instance()
 cwconn = aws_conn.cwConnection()
 # AWS CloudWatch obj
 cwi = CloudWatch()
+# AWS RDS connection
+rdsconn = aws_conn.rdsConnection()
+# AWS RDS obj
+rdsi = RDSInstance()
 
 # *** OpenStack - LibCloud ***
 
@@ -51,14 +56,14 @@ def welcome_menu():
     Shows main menu
     :return: option chosen
     """
-    options = {'1': 'Compute', '2': 'Storage', '3': 'Monitoring', '4': 'changeme1', '5': 'changeme2', '6': 'exit'}
+    options = {'1': 'Compute', '2': 'Storage', '3': 'Monitoring', '4': 'RDS', '5': 'changeme2', '6': 'exit'}
     __cls()
     print "*** Welcome to 3cli ***"
     print "Choose an option:"
     print "\t1. Compute"
     print "\t2. Storage"
     print "\t3. Monitoring"
-    print "\t4. Autoscaling/AmazonDB/Relational DB Service/Elastic Load Balancing"
+    print "\t4. Relational Database Service"
     print "\t5. Another service (API reference only)"
     print "\t6. Exit"
     op = raw_input("Enter option: ")
@@ -90,8 +95,11 @@ def _process_options(op):
         else:
             # Show submenu of category Compute/Storage of AWS/OpenStack vendor
             _process_compute_storage(vendors[op_vendor], op_category)
-    if op == 'Monitoring':
+    elif op == 'Monitoring':
         _process_monitoring()
+
+    elif op == 'RDS':
+        _process_rds()
 
     elif op == 'exit':
         # Exit program
@@ -338,6 +346,9 @@ def _process_openstack_storage(op):
 
 
 def _process_monitoring():
+    """
+    Process monitoring menu
+    """
     print "Monitoring menu:"
     print "\t1. Display AWS EC2 instance metrics"
     print "\t2. Set alarm (<40% CPU utilisation)"
@@ -366,6 +377,50 @@ def _process_monitoring():
                 # Ask user for email address to notifify
                 email_address = raw_input("Enter email address of notification alarm: ")
                 cwi.cw_alarm(cwconn, instance_id, email_address)
+
+def _process_rds():
+    """
+    Process Relational Database Service menu
+    """
+    print "Relational Database Service menu:"
+    print "\t1. List DB instances"
+    print "\t2. Show DB info"
+    print "\t3. Create DB instance"
+    print "\t4. Delete DB instance"
+    print "Enter \'\\q\' to go back"
+    while True:
+        op = raw_input("Enter option: ")
+        # Validating entered option
+        op_vendor = __op_validation(r'^([1-4]|\\q)$', op)
+        if op_vendor == "\\q":
+            welcome_menu()
+            break
+        else:
+            if op == '1':
+                # List DB instances
+                rdsi.list_dbs(rdsconn)
+            elif op == '2':
+                # Ask user for dbinstance name
+                dbinstance_name = raw_input("Enter DB instance name: ")
+                # Show info
+                rdsi.show_dbinstance_info(rdsconn, dbinstance_name)
+            elif op == '3':
+                # Ask user for dbinstance name
+                dbinstance_name = raw_input("Enter DB instance name: ")
+                # Ask user for db size
+                size = raw_input("Enter DB instance size (in GB): ")
+                # Ask user for dbinstance engine
+                engine = raw_input("Enter DB instance engine (MySQL/oracle-ee/postgres): ")
+                # Ask user for dbinstance user name
+                username = raw_input("Enter DB user name: ")
+                # Ask user for dbinstance password
+                password = raw_input("Enter DB instance password: ")
+                rdsi.create_dbinstance(rdsconn, dbinstance_name, size, engine, username, password)
+            elif op == '4':
+                # Ask user for dbinstance name
+                dbinstance_name = raw_input("Enter DB instance name: ")
+                rdsi.delete_dbinstance(rdsconn, dbinstance_name)
+
 
 
 # Utils
