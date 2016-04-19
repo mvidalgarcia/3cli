@@ -9,6 +9,7 @@ from boto.s3.connection import S3Connection  # AWS connection
 
 from application.openstack.Connections import OpenStackConnection # OpenStack global connection
 from application.openstack.Compute import ComputeInstance  # OpenStack Compute
+from application.openstack.Storage import StorageInstance  # OpenStack Storage
 
 # *** AWS - boto ***
 
@@ -29,10 +30,14 @@ s3i = S3Instance()
 
 # OpenStack global connection
 os_conn = OpenStackConnection()
-# OpenStack driver
-os_driver = os_conn.openstack_driver()
+# OpenStack Compute driver
+os_compute_driver = os_conn.openstack_compute_driver()
 # OpenStack Compute obj
-os_compi = ComputeInstance(os_driver)
+os_compi = ComputeInstance(os_compute_driver)
+# OpenStack Storage driver
+os_storage_driver = os_conn.openstack_storage_drive()
+# OpenStack Compute obj
+os_stori = StorageInstance(os_storage_driver)
 
 
 def welcome_menu():
@@ -288,7 +293,39 @@ def _process_aws_storage(op):
 
 
 def _process_openstack_storage(op):
-    print 'je'
+    """
+    Process OpenStack storage functions
+    :param op: Storage option selected by user
+    """
+    if op == '1':
+        # List containers
+        os_stori.list_containers()
+    if op == '2':
+        # Ask user for container name
+        container_name = raw_input("Enter container name: ")
+        # List its files
+        os_stori.list_container_files(container_name)
+    if op == '3':
+        # Ask user for container name
+        container_name = raw_input("Enter container name: ")
+        # Ask user for file name
+        file_name = raw_input("Enter file name (path): ")
+        # Upload file to container
+        os_stori.upload_file_to_container(container_name, file_name)
+    if op == '4':
+        # Ask user for container name
+        container_name = raw_input("Enter container name: ")
+        # Ask user for file name
+        file_name = raw_input("Enter object name: ")
+        # Download file from container
+        os_stori.download_file_from_container(container_name, file_name)
+    if op == '5':
+        # Ask user for container name
+        container_name = raw_input("Enter container name: ")
+        # Ask user for file name
+        file_name = raw_input("Enter object name: ")
+        # Delete file from container
+        os_stori.delele_file_from_container(container_name, file_name)
 
 
 # Utils
