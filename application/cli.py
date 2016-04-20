@@ -8,6 +8,7 @@ from application.aws.S3 import S3Instance    # AWS S3
 from boto.s3.connection import S3Connection  # AWS connection
 from application.aws.CloudWatch import CloudWatch  # AWS CloudWatch
 from application.aws.RDS import RDSInstance  # AWS RDS
+from application.aws.Beanstalk import BeanstalkInstance  # AWS Elastic Beanstalk
 
 from application.openstack.Connections import OpenStackConnection  # OpenStack global connection
 from application.openstack.Compute import ComputeInstance  # OpenStack Compute
@@ -36,6 +37,10 @@ cwi = CloudWatch()
 rdsconn = aws_conn.rdsConnection()
 # AWS RDS obj
 rdsi = RDSInstance()
+# AWS Elastic Beanstalk connection
+beansconn = aws_conn.beanstalkConnection()
+# AWS Elastic Beanstalk obj
+beansi = BeanstalkInstance()
 
 # *** OpenStack - LibCloud ***
 
@@ -55,7 +60,7 @@ def welcome_menu():
     """
     Shows main menu and call process option method
     """
-    options = {'1': 'Compute', '2': 'Storage', '3': 'Monitoring', '4': 'RDS', '5': 'changeme2', '6': 'exit'}
+    options = {'1': 'Compute', '2': 'Storage', '3': 'Monitoring', '4': 'RDS', '5': 'Beanstalk', '6': 'exit'}
     # Clear screen
     __cls()
     print "*** Welcome to 3cli ***"
@@ -63,8 +68,8 @@ def welcome_menu():
     print "\t1. Compute"
     print "\t2. Storage"
     print "\t3. Monitoring"
-    print "\t4. Relational Database Service"
-    print "\t5. Another service (API reference only)"
+    print "\t4. AWS Relational Database Service"
+    print "\t5. AWS Elastic Beanstalk"
     print "\t6. Exit"
     op = raw_input("Enter option: ")
     # Validating entered option
@@ -100,6 +105,9 @@ def _process_options(op):
 
     elif op == 'RDS':
         _process_rds()
+
+    elif op == 'Beanstalk':
+        _process_beanstalk()
 
     elif op == 'exit':
         # Exit program
@@ -441,6 +449,36 @@ def _process_rds():
                 # Ask user for dbinstance name
                 dbinstance_name = raw_input("Enter DB instance name: ")
                 rdsi.delete_dbinstance(rdsconn, dbinstance_name)
+
+
+def _process_beanstalk():
+    """
+    Process AWS Elastic Beanstalk menu
+    """
+    print "Elastic Beanstalk menu:"
+    print "\t1. Create application"
+    print "\t2. Delete application"
+    while True:
+        op = raw_input("Enter option: ")
+        # Validating entered option
+        op_vendor = __op_validation(r'^([12]|\\q)$', op)
+        if op_vendor == "\\q":
+            welcome_menu()
+            break
+        else:
+            if op == '1':
+                # Ask user for application name
+                app_name = raw_input('Enter application name: ')
+                # Ask user for application description
+                app_description = raw_input('Enter application description: ')
+                # Create new Beanstalk app
+                beansi.create_application(beansconn, app_name, app_description)
+            elif op == '2':
+                # Ask user for application name
+                app_name = raw_input('Enter application name: ')
+                # Delete Beanstalk app
+                beansi.delete_application(beansconn, app_name)
+
 
 
 # Utils

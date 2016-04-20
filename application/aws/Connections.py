@@ -2,6 +2,7 @@ import boto
 import boto.ec2
 import boto.ec2.cloudwatch
 import boto.rds
+import boto.beanstalk
 
 
 class AWSConnection:
@@ -21,3 +22,7 @@ class AWSConnection:
     def rdsConnection(self):
         """ Create and return a Relational Database Service (AWS RDS) Connection """
         return boto.rds.connect_to_region(self.region)
+
+    def beanstalkConnection(self):
+        """ Create and return an Elastic Beanstalk Connection """
+        return boto.beanstalk.connect_to_region(self.region)
