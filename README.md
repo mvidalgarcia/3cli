@@ -30,6 +30,9 @@ Allows to perform the following operations:
   * Show DB info
   * Create DB instance
   * Delete DB instance  
+* Elastic Beanstalk
+  * Create application
+  * Delete application
 
 
 ##### OpenStack
